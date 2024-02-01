@@ -10,6 +10,7 @@ TIMESTAMP=$(date +%F-%H-%M_%S)
 LOGFILE="/tmp/$0-$TIMESTAMP.log"
 
 echo "script started executing at $TIMESTAMP" &>> $LOGFILE
+
 VALIDATE(){
     if [ $1 -ne 0 ]
     then 
@@ -18,6 +19,7 @@ VALIDATE(){
         echo -e "$2 ... $G SUCCESS $N"
     fi
 }
+
 if [ $ID -ne 0 ]
 then 
     echo -e "$R ERROR:: please run this script with root access $N"
@@ -29,3 +31,23 @@ fi
 cp mongo.repo /etc/yum.repos.d/mongo.repo &>> $LOGFILE
 
 VALIDATE $? "Copied MongoDB Repo"
+
+dnf install mongodb-org -y &>> $LOGFILE
+
+VALIDATE $? "Installing MongoDB"
+
+systemctl enable mongod &>> $LOGFILE
+
+VALIDATE $? "Enablling MongoDB"
+
+systemctl start mongod &>> $LOGFILE
+
+VALIDATE $? "starting MongoDB"
+
+sed -i 's/127.0.0.1/0.0.0.0/g' /etc/mongod.conf &>> $LOGFILE
+
+VALIDATE $? "Remote access to MongoDB"
+
+systemctl restart mongod &>> $LOGFILE
+
+VALIDATE $? "Restarting MongoDB"
